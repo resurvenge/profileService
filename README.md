@@ -125,7 +125,7 @@ profileService:saveAllPlayers(databaseName) -- for this all you want to do is pa
 
 ```lua
 
-profileService: Autosave(databaseName) -- for this all you want to do is pass the databaseName and the interval (how fast to save each time)
+profileService: Autosave(databaseName, interval) -- for this all you want to do is pass the databaseName and the interval (how fast to save each time) Ex. 5
 
 ```
 
