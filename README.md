@@ -109,7 +109,7 @@ playerService.PlayerAdded:Connect(function(player) -- Define player
 end)
 
 playerService.PlayerRemoving:Connect(function(player) -- Define player
-      profileService:Save(player, dataStoreName) -- Pass in player and the dataStore name
+      profileService:Save(player, dataStoreName) -- Pass in player and the dataStore name, use SaveToAttributes if you're datastore is dedicated to saving attributes, else only use Save
       profileService:Removing(player) -- Clears the profile table of the player that left the game
 end)
 
@@ -125,7 +125,11 @@ profileService:saveAllPlayers(databaseName) -- for this all you want to do is pa
 
 ```lua
 
-profileService: Autosave(databaseName, interval) -- for this all you want to do is pass the databaseName and the interval (how fast to save each time) Ex. 5
+profileService: Autosave(databaseName, interval) -- for this all you want to do is pass the databaseName and the interval (how fast to save each time)
+
+-- IF YOUR TEMPLATES ARE FOR SAVING ATTRIBUTES THEN ENABLE AUTOSAVE ATTRIBUTES
+
+profileService: Autosave(databaseName, interval, true) -- saves
 
 ```
 
