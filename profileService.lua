@@ -57,7 +57,7 @@ function profileService: Save(player, databaseName)
 	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
 	for _, obj in pairs(profiles[player.UserId]) do
 		database:SetAsync(player.UserId,profiles[player.UserId])
-		print("[PROFILESERVICE]: " .. _ .. obj)
+		print("[" .. CONFIG.serviceName "]: "  .. _ .. obj)
 		print(profiles[player.UserId])
 	end
 end
@@ -75,17 +75,17 @@ function profileService: Get(player, value)
 	return profiles[player.UserId][value]
 end
 
-function profileService: saveAllPlayers(player, databaseName)
-	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
-	for _, obj in pairs(playerService:GetPlayers()) do
+function profileService: saveAllPlayers(databaseName)
+	for _, player in pairs(playerService:GetPlayers()) do
+		  assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
 		  profileService: Save(player, databaseName)
 	end
 end
 
-function profileService: autoSave(player, databaseName, interval)
-	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+function profileService: autoSave(databaseName, interval)
 	while true do
-		   self:saveAllPlayers(player, databaseName)
+		   self:saveAllPlayers(databaseName)
+		   print("[" .. CONFIG.serviceName .. "]: ")
 		   task.wait(interval)
 	end
 end
