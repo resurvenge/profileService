@@ -22,7 +22,7 @@ function profileService:New(dataStoreName)
 end
 
 local function getDatabase(dataStoreName)
-	assert(profileDatabases[dataStoreName], string.format("Database is not valid %s", dataStoreName))
+	assert(profileDatabases[dataStoreName],"Database is not valid")
 	return profileDatabases[dataStoreName]
 end
 
@@ -37,19 +37,19 @@ function profileService:LoadData(player, dataStoreName)
 	local dataStore = getDatabase(dataStoreName)
 	local data = dataStore:GetAsync(player.UserId)
 	if not playerService:IsAncestorOf(player) then
-		   player:Kick("[" .. CONFIG.serviceName .. "]: playerService is not an ancestor of " .. player.UserId .. ", " .. player.Name)
+		player:Kick("[" .. CONFIG.serviceName .. "]: playerService is not an ancestor of " .. player.UserId .. ", " .. player.Name)
 	elseif not data then
-			if templates[dataStoreName] then
-				profiles[player.UserId] = templates[dataStoreName]
-				dataStore:SetAsync(player.UserId, profiles[player.UserId])
-				print("[" .. CONFIG.serviceName .. "]: Created Data")
-			end
-		else
-			print("[" .. CONFIG.serviceName .. "]: Sucessfully loaded data!")
-			profiles[player.UserId] = data
-			print("[" .. CONFIG.serviceName .. "]: TABLE")
-			print(profiles[player.UserId])
-	  end
+		if templates[dataStoreName] then
+			profiles[player.UserId] = templates[dataStoreName]
+			dataStore:SetAsync(player.UserId, profiles[player.UserId])
+			print("[" .. CONFIG.serviceName .. "]: Created Data")
+		end
+	else
+		print("[" .. CONFIG.serviceName .. "]: Sucessfully loaded data!")
+		profiles[player.UserId] = data
+		print("[" .. CONFIG.serviceName .. "]: TABLE")
+		print(profiles[player.UserId])
+	end
 end
 
 function profileService: Save(player, databaseName)
@@ -62,6 +62,21 @@ function profileService: Save(player, databaseName)
 	end
 end
 
+function profileService: SaveToAttributes(player, databaseName)
+	local database = getDatabase(databaseName)
+	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+	for Name, obj in pairs(profiles[player.UserId]) do
+		if player.Character:GetAttribute(Name) then
+			 profiles[player.UserId][Name] = player.Character:GetAttribute(Name)
+		 	 print("[" .. CONFIG.serviceName  .. "]: " .. Name .. ", " .. player.Character:GetAttribute(Name))
+		end
+		database:SetAsync(player.UserId,profiles[player.UserId])
+		print("[" .. CONFIG.serviceName .. "]: "  .. Name.. obj)
+		print(profiles[player.UserId])
+	end
+end
+
+
 function profileService: Update(player, value, callback)
 	assert(profiles[player.UserId][value], string.format("Profile value does not exist %s", player.UserId .. ", value: " .. value))
 	local newData = callback(profiles[player.UserId][value])
@@ -70,6 +85,7 @@ function profileService: Update(player, value, callback)
 	return newData
 end
 
+
 function profileService: Get(player, value)
 	assert(profiles[player.UserId][value], string.format("Profile value does not exist %s", player.UserId .. ", value: " .. value))
 	return profiles[player.UserId][value]
@@ -77,22 +93,37 @@ end
 
 function profileService: saveAllPlayers(databaseName)
 	for _, player in pairs(playerService:GetPlayers()) do
-		  assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
-		  profileService: Save(player, databaseName)
+		assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+		profileService: Save(player, databaseName)
 	end
 end
 
-function profileService: autoSave(databaseName, interval)
-	while true do
-		   self:saveAllPlayers(databaseName)
-		   print("[" .. CONFIG.serviceName .. "]: ")
-		   task.wait(interval)
+function profileService: saveAllPlayersToAttributes(databaseName)
+	for _, player in pairs(playerService:GetPlayers()) do
+		assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+		 self:SaveToAttributes(player, databaseName)
 	end
+end
+
+function profileService: autoSave(databaseName, interval, attributes)
+	  return task.spawn(function()
+		while true do
+			  if attributes then
+				self:saveAllPlayersToAttributes(databaseName)
+				print("[" .. CONFIG.serviceName .. "]: ")
+				task.wait(interval)
+			  else
+				self:saveAllPlayers(databaseName)
+				print("[" .. CONFIG.serviceName .. "]: ")
+				task.wait(interval)
+			  end
+		end
+	  end)
 end
 
 
 function profileService :__ProfileRemove(player)
-	 profiles[player.UserId] = nil
+	profiles[player.UserId] = nil
 end
 
 function profileService: Removing(player)
