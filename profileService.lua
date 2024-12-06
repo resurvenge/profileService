@@ -57,7 +57,7 @@ function profileService: Save(player, databaseName)
 	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
 	for _, obj in pairs(profiles[player.UserId]) do
 		database:SetAsync(player.UserId,profiles[player.UserId])
-		print("[" .. CONFIG.serviceName "]: "  .. _ .. obj)
+		print("[" .. CONFIG.serviceName .. "]: "  .. _ .. obj)
 		print(profiles[player.UserId])
 	end
 end
