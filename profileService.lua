@@ -36,16 +36,20 @@ end
 function profileService:LoadData(player, dataStoreName)
 	local dataStore = getDatabase(dataStoreName)
 	local data = dataStore:GetAsync(player.UserId)
-	if not data then
-		if templates[dataStoreName] then
-			profiles[player.UserId] = templates[dataStoreName]
-			dataStore:SetAsync(player.UserId, profiles[player.UserId])
-			print("[" .. CONFIG.serviceName .. "]: Created Data")
-		end
-	else
-		print("[" .. CONFIG.serviceName .. "]: Sucessfully loaded data!")
-		profiles[player.UserId] = data
-	end
+	if not playerService:IsAncestorOf(player) then
+		   player:Kick("[" .. CONFIG.serviceName .. "]: playerService is not an ancestor of " .. player.UserId .. ", " .. player.Name)
+	elseif not data then
+			if templates[dataStoreName] then
+				profiles[player.UserId] = templates[dataStoreName]
+				dataStore:SetAsync(player.UserId, profiles[player.UserId])
+				print("[" .. CONFIG.serviceName .. "]: Created Data")
+			end
+		else
+			print("[" .. CONFIG.serviceName .. "]: Sucessfully loaded data!")
+			profiles[player.UserId] = data
+			print("[" .. CONFIG.serviceName .. "]: TABLE")
+			print(profiles[player.UserId])
+	  end
 end
 
 function profileService: Save(player, databaseName)
@@ -53,7 +57,8 @@ function profileService: Save(player, databaseName)
 	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
 	for _, obj in pairs(profiles[player.UserId]) do
 		database:SetAsync(player.UserId,profiles[player.UserId])
-		print("[" .. CONFIG.serviceName .. "]:" .. obj)
+		print("[PROFILESERVICE]: " .. _ .. obj)
+		print(profiles[player.UserId])
 	end
 end
 
@@ -65,12 +70,37 @@ function profileService: Update(player, value, callback)
 	return newData
 end
 
-function profileService:Removing(player)
-	if player.Character then
-		player:Kick("[" .. CONFIG.serviceName .. "]: (PLAYER KICK), PLAYER NOT REMOVED")
+function profileService: Get(player, value)
+	assert(profiles[player.UserId][value], string.format("Profile value does not exist %s", player.UserId .. ", value: " .. value))
+	return profiles[player.UserId][value]
+end
+
+function profileService: saveAllPlayers(player, databaseName)
+	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+	for _, obj in pairs(playerService:GetPlayers()) do
+		  profileService: Save(player, databaseName)
 	end
 end
 
+function profileService: autoSave(player, databaseName, interval)
+	assert(profiles[player.UserId], string.format("Profile does not exist %s", player.UserId))
+	while true do
+		   self:saveAllPlayers(player, databaseName)
+		   task.wait(interval)
+	end
+end
+
+
+function profileService :__ProfileRemove(player)
+	 profiles[player.UserId] = nil
+end
+
+function profileService: Removing(player)
+	if player.Character then
+		player:Kick("[PROFILESERVICE]: (PLAYER KICK), PLAYER NOT REMOVED")
+	end
+	self:__ProfileRemove(player)
+end
 
 
 return profileService
