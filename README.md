@@ -1,4 +1,6 @@
 # What is profileService
+[PROFILE SERVICE IS NOW DEPRECATED, WHICH MEANS THAT IT DOESNT GET ANY UPDATES. THIS MODULE IS BEING REMADE, DO NOT USE IT]
+
 profileService is a simple, secure, and fast way to make datastores in roblox!
 Note: This is not the original profile service, this is another script made by kepwastaken on discord
 
